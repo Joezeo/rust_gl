@@ -4,10 +4,13 @@ use glutin::{
     context::{ContextApi, ContextAttributesBuilder, NotCurrentContext, Version},
     display::{GetGlDisplay, GlDisplay},
 };
-use raw_window_handle::HasRawWindowHandle;
 use glutin_winit::DisplayBuilder;
-use winit::{event_loop::EventLoopWindowTarget, window::{Window, WindowBuilder}};
+use raw_window_handle::HasRawWindowHandle;
 use std::error::Error;
+use winit::{
+    event_loop::EventLoopWindowTarget,
+    window::{Window, WindowBuilder},
+};
 
 pub fn bootstrap_gl_window(
     target: &EventLoopWindowTarget<()>,
@@ -35,9 +38,7 @@ pub fn bootstrap_gl_window(
             .unwrap()
     })?;
 
-    let raw_window_handle = window
-        .as_ref()
-        .map(|window| window.raw_window_handle());
+    let raw_window_handle = window.as_ref().map(|window| window.raw_window_handle());
 
     // XXX The display could be obtained from any object created by it, so we can
     // query it from the config.
@@ -78,8 +79,7 @@ pub fn bootstrap_gl_window(
 }
 
 /// Use Egl to create an off-screen gl context.
-pub fn bootstrap_off_screen_gl() -> Result<(Config, NotCurrentContext), Box<dyn Error>>
-{
+pub fn bootstrap_off_screen_gl() -> Result<(Config, Option<NotCurrentContext>), Box<dyn Error>> {
     let devices = Device::query_devices()
         .expect("Failed to query devices")
         .collect::<Vec<_>>();
@@ -139,5 +139,8 @@ pub fn bootstrap_off_screen_gl() -> Result<(Config, NotCurrentContext), Box<dyn 
             })
     };
 
-    Ok((Config::Egl(config), NotCurrentContext::Egl(not_current_context)))
+    Ok((
+        Config::Egl(config),
+        Some(NotCurrentContext::Egl(not_current_context)),
+    ))
 }

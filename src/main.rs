@@ -1,12 +1,10 @@
 use glutin::{
-    config::Config,
     context::{NotCurrentGlContext, PossiblyCurrentContext},
     display::{GetGlDisplay, GlDisplay},
     surface::{GlSurface, Surface, WindowSurface},
 };
 use glutin_winit::GlWindow;
 use renderer::Renderer;
-use std::ffi::CString;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoopBuilder,
@@ -17,6 +15,7 @@ use crate::gl_bootstrap::bootstrap_gl_window;
 
 pub mod gl_bootstrap;
 pub mod renderer;
+pub mod shaders;
 
 struct GlState {
     context: PossiblyCurrentContext,
@@ -39,7 +38,6 @@ fn main() {
     event_loop
         .run(|event, target| match event {
             Event::Resumed => {
-                println!("Window resumed.");
                 let attrs = window.build_surface_attributes(Default::default());
                 let gl_display = gl_config.display();
                 let gl_surface = unsafe {
@@ -59,6 +57,14 @@ fn main() {
                     surface: gl_surface,
                     renderer: Renderer::new(&gl_display),
                 })
+            }
+            Event::AboutToWait => {
+                if let Some(ref state) = state {
+                    state.renderer.draw();
+                    window.request_redraw();
+
+                    state.surface.swap_buffers(&state.context).unwrap();
+                }
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => target.exit(),
