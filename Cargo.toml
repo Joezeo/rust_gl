@@ -1,0 +1,16 @@
+[package]
+name = "rust_gl"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winit = { version = "0.29.10", default-features = false, features = ["wayland", "x11", "rwh_05"]}
+raw-window-handle = "0.5"
+glutin = "0.31.2"
+glutin-winit = "0.4.2"
+gl = "0.14.0"
+
+[build-dependencies]
+gl_generator = "0.14.0"
