@@ -5,6 +5,7 @@ use glutin::{
 };
 use glutin_winit::GlWindow;
 use renderer::Renderer;
+use samples::Sample;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoopBuilder,
@@ -15,6 +16,7 @@ use crate::gl_bootstrap::bootstrap_gl_window;
 
 pub mod gl_bootstrap;
 pub mod renderer;
+pub mod samples;
 pub mod shaders;
 
 struct GlState {
@@ -55,7 +57,7 @@ fn main() {
                 state = Some(GlState {
                     context: gl_context,
                     surface: gl_surface,
-                    renderer: Renderer::new(&gl_display),
+                    renderer: Renderer::new(&gl_display, Sample::SimpleTriangle),
                 })
             }
             Event::AboutToWait => {

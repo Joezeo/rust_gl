@@ -1,45 +1,64 @@
-pub const SIMPLE_VERTEX_SHADER_SOURCE: &[u8] = b"
-#version 330 core
+use std::{fs::File, io::Read, path::PathBuf};
 
-layout(location = 0) in vec4 position;
+use winit::dpi::Pixel;
 
-void main() {
-    gl_Position = position;
+pub enum ShaderType {
+    Vertex,
+    Fragment,
 }
-\0";
-
-pub const SIMPLE_FRAGMENT_SHADER_SOURCE: &[u8] = b"
-#version 330 core
-
-layout(location = 0) out vec4 color;
-
-void main() {
-    color = vec4(1.0, 1.0, 1.0, 1.0);
+impl ShaderType {
+    fn suffix(&self) -> &'static str {
+        match self {
+            Self::Vertex => ".vs",
+            Self::Fragment => ".fs",
+        }
+    }
 }
-\0";
 
-pub const VERTEX_SHADER_SOURCE: &[u8] = b"
-#version 100
-precision mediump float;
+pub struct ShaderSource;
+impl ShaderSource {
+    pub fn load<T: ToString>(name: T, ty: ShaderType) -> Vec<u8> {
+        let mut name = name.to_string();
+        name.push_str(ty.suffix());
 
-attribute vec2 position;
-attribute vec3 color;
+        let path = PathBuf::default().join("res/shaders").join(name);
+        let os_string = path.as_os_str().to_os_string();
+        let path_str = os_string.to_string_lossy();
 
-varying vec3 v_color;
-
-void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-    v_color = color;
+        let mut file = File::open(path).expect(&format!("Open file {} failed.", path_str));
+        let mut buf = vec![];
+        file.read_to_end(&mut buf)
+            .expect(&format!("Read file {} failed.", path_str));
+        buf.push(0);
+        buf
+    }
 }
-\0";
 
-pub const FRAGMENT_SHADER_SOURCE: &[u8] = b"
-#version 100
-precision mediump float;
+pub unsafe fn create_shader(
+    gl: &crate::renderer::gl::Gl,
+    shader: gl::types::GLenum,
+    source: &[u8],
+) -> gl::types::GLuint {
+    let shader = gl.CreateShader(shader);
+    gl.ShaderSource(
+        shader,
+        1,
+        [source.as_ptr().cast()].as_ptr(),
+        std::ptr::null(),
+    );
+    gl.CompileShader(shader);
 
-varying vec3 v_color;
+    let mut result = std::mem::zeroed();
+    gl.GetShaderiv(shader, gl::COMPILE_STATUS, &mut result);
+    if result == gl::FALSE.cast() {
+        let mut length = std::mem::zeroed();
+        gl.GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut length);
 
-void main() {
-    gl_FragColor = vec4(v_color, 1.0);
+        let mut message = vec![0.cast(); length as usize];
+        gl.GetShaderInfoLog(shader, length.cast(), &mut length, message.as_mut_ptr());
+        let string_result = String::from_utf8(message.iter().map(|&x| x as u8).collect()).unwrap();
+        println!("Shader compile error: {}", string_result);
+    }
+
+    shader
 }
-\0";
