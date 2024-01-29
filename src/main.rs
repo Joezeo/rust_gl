@@ -1,3 +1,9 @@
+pub mod gl_bootstrap;
+pub mod renderer;
+pub mod samples;
+pub mod shaders;
+
+use crate::gl_bootstrap::bootstrap_gl_window;
 use glutin::{
     context::{NotCurrentGlContext, PossiblyCurrentContext},
     display::{GetGlDisplay, GlDisplay},
@@ -12,18 +18,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::gl_bootstrap::bootstrap_gl_window;
-
-pub mod gl_bootstrap;
-pub mod renderer;
-pub mod samples;
-pub mod shaders;
-
-struct GlState {
-    context: PossiblyCurrentContext,
-    surface: Surface<WindowSurface>,
-    renderer: Renderer,
-}
+const SAMPLE: Sample = Sample::SimpleSquare;
 
 fn main() {
     let event_loop = EventLoopBuilder::<()>::default().build().unwrap();
@@ -57,15 +52,20 @@ fn main() {
                 state = Some(GlState {
                     context: gl_context,
                     surface: gl_surface,
-                    renderer: Renderer::new(&gl_display, Sample::SimpleTriangle),
+                    renderer: Renderer::new(&gl_display, SAMPLE),
                 })
             }
             Event::AboutToWait => {
-                if let Some(ref state) = state {
-                    state.renderer.draw();
+                if let Some(GlState {
+                    context,
+                    surface,
+                    renderer,
+                }) = state.as_ref()
+                {
+                    renderer.draw();
                     window.request_redraw();
 
-                    state.surface.swap_buffers(&state.context).unwrap();
+                    surface.swap_buffers(context).unwrap();
                 }
             }
             Event::WindowEvent { event, .. } => match event {
@@ -75,4 +75,10 @@ fn main() {
             _ => {}
         })
         .unwrap();
+}
+
+struct GlState {
+    context: PossiblyCurrentContext,
+    surface: Surface<WindowSurface>,
+    renderer: Renderer,
 }
