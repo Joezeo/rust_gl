@@ -1,3 +1,4 @@
+pub mod error;
 pub mod gl_bootstrap;
 pub mod renderer;
 pub mod samples;
@@ -55,21 +56,27 @@ fn main() {
                     renderer: Renderer::new(&gl_display, SAMPLE),
                 })
             }
-            Event::AboutToWait => {
-                if let Some(GlState {
-                    context,
-                    surface,
-                    renderer,
-                }) = state.as_ref()
-                {
-                    renderer.draw();
-                    window.request_redraw();
 
-                    surface.swap_buffers(context).unwrap();
-                }
-            }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => target.exit(),
+
+                WindowEvent::Resized(size) => {
+                    if let Some(GlState { renderer, .. }) = state.as_ref() {
+                        renderer.resize(size.width as i32, size.height as i32)
+                    }
+                }
+
+                WindowEvent::RedrawRequested => {
+                    if let Some(GlState {
+                        context,
+                        surface,
+                        renderer,
+                    }) = state.as_ref()
+                    {
+                        renderer.draw();
+                        surface.swap_buffers(context).unwrap();
+                    }
+                }
                 _ => {}
             },
             _ => {}

@@ -2,6 +2,8 @@ use std::{fs::File, io::Read, path::PathBuf};
 
 use winit::dpi::Pixel;
 
+use crate::gl_call;
+
 pub enum ShaderType {
     Vertex,
     Fragment,
@@ -39,23 +41,29 @@ pub unsafe fn create_shader(
     shader: gl::types::GLenum,
     source: &[u8],
 ) -> gl::types::GLuint {
-    let shader = gl.CreateShader(shader);
-    gl.ShaderSource(
-        shader,
-        1,
-        [source.as_ptr().cast()].as_ptr(),
-        std::ptr::null(),
+    let shader = gl_call!(gl, CreateShader(shader));
+    gl_call!(
+        gl,
+        ShaderSource(
+            shader,
+            1,
+            [source.as_ptr().cast()].as_ptr(),
+            std::ptr::null(),
+        )
     );
-    gl.CompileShader(shader);
+    gl_call!(gl, CompileShader(shader));
 
     let mut result = std::mem::zeroed();
-    gl.GetShaderiv(shader, gl::COMPILE_STATUS, &mut result);
+    gl_call!(gl, GetShaderiv(shader, gl::COMPILE_STATUS, &mut result));
     if result == gl::FALSE.cast() {
         let mut length = std::mem::zeroed();
-        gl.GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut length);
+        gl_call!(gl, GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut length));
 
         let mut message = vec![0.cast(); length as usize];
-        gl.GetShaderInfoLog(shader, length.cast(), &mut length, message.as_mut_ptr());
+        gl_call!(
+            gl,
+            GetShaderInfoLog(shader, length.cast(), &mut length, message.as_mut_ptr())
+        );
         let string_result = String::from_utf8(message.iter().map(|&x| x as u8).collect()).unwrap();
         println!("Shader compile error: {}", string_result);
     }

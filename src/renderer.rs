@@ -1,4 +1,4 @@
-use crate::samples::{Sample, SampleProps};
+use crate::{gl_call, samples::{Sample, SampleProps}};
 use glutin::display::GlDisplay;
 use std::ffi::{CStr, CString};
 
@@ -31,7 +31,7 @@ impl Renderer {
             println!("Shaders version on {}", shaders_version.to_string_lossy());
         }
 
-        let sample = sample.create(&gl);
+        let sample = unsafe { sample.create(&gl) };
 
         Self { gl, sample }
     }
@@ -59,7 +59,7 @@ impl Drop for Renderer {
 
 fn get_gl_string(gl: &gl::Gl, variant: gl::types::GLenum) -> Option<&'static CStr> {
     unsafe {
-        let s = gl.GetString(variant);
+        let s = gl_call!(gl, GetString(variant));
         (!s.is_null()).then(|| CStr::from_ptr(s.cast()))
     }
 }
