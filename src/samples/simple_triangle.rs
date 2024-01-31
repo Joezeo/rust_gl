@@ -8,8 +8,8 @@ use gl::types::{GLsizei, GLsizeiptr};
 #[rustfmt::skip]
 const VERTEX_DATA: [f32; 6] = [
     -0.5, -0.5,
-    0.0, 0.5,
-    0.5, -0.5,
+     0.0,  0.5,
+     0.5, -0.5,
 ];
 
 pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
@@ -18,12 +18,12 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     let vertex_shader = create_shader(
         &gl,
         gl::VERTEX_SHADER,
-        &ShaderSource::load("simple_triangle", ShaderType::Vertex),
+        &ShaderSource::load("basic", ShaderType::Vertex),
     );
     let fragment_shader = create_shader(
         &gl,
         gl::FRAGMENT_SHADER,
-        &ShaderSource::load("simple_triangle", ShaderType::Fragment),
+        &ShaderSource::load("basic", ShaderType::Fragment),
     );
     gl_call!(gl, AttachShader(program, vertex_shader));
     gl_call!(gl, AttachShader(program, fragment_shader));

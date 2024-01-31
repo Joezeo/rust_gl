@@ -1,4 +1,5 @@
 use crate::{gl_call, samples::{Sample, SampleProps}};
+use ::gl::types::GLchar;
 use glutin::display::GlDisplay;
 use std::ffi::{CStr, CString};
 
@@ -42,6 +43,12 @@ impl Renderer {
         }
     }
 
+    pub fn snapshot(&self) -> bool {
+        unsafe {
+            self.sample.snapshot(&self.gl)
+        }
+    }
+
     pub fn resize(&self, width: i32, height: i32) {
         unsafe {
             self.gl.Viewport(0, 0, width, height);
@@ -57,9 +64,15 @@ impl Drop for Renderer {
     }
 }
 
-fn get_gl_string(gl: &gl::Gl, variant: gl::types::GLenum) -> Option<&'static CStr> {
+pub fn get_gl_string(gl: &gl::Gl, variant: gl::types::GLenum) -> Option<&'static CStr> {
     unsafe {
         let s = gl_call!(gl, GetString(variant));
         (!s.is_null()).then(|| CStr::from_ptr(s.cast()))
     }
+}
+
+/// #### The string that interacts with OpenGl Api needs to end with '\0'
+#[inline]
+pub fn as_gl_char_ptr(str: &str) -> *const GLchar {
+    str.as_bytes() as *const [u8] as *const u8 as *const GLchar
 }

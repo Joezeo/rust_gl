@@ -4,11 +4,13 @@ pub mod renderer;
 pub mod samples;
 pub mod shaders;
 
+use std::num::NonZeroU32;
+
 use crate::gl_bootstrap::bootstrap_gl_window;
 use glutin::{
     context::{NotCurrentGlContext, PossiblyCurrentContext},
     display::{GetGlDisplay, GlDisplay},
-    surface::{GlSurface, Surface, WindowSurface},
+    surface::{GlSurface, Surface, SwapInterval, WindowSurface},
 };
 use glutin_winit::GlWindow;
 use renderer::Renderer;
@@ -34,52 +36,69 @@ fn main() {
     let mut state = None;
 
     event_loop
-        .run(|event, target| match event {
-            Event::Resumed => {
-                let attrs = window.build_surface_attributes(Default::default());
-                let gl_display = gl_config.display();
-                let gl_surface = unsafe {
-                    gl_display
-                        .create_window_surface(&gl_config, &attrs)
+        .run(|event, target| {
+            match event {
+                Event::Resumed => {
+                    let attrs = window.build_surface_attributes(Default::default());
+                    let gl_display = gl_config.display();
+                    let gl_surface = unsafe {
+                        gl_display
+                            .create_window_surface(&gl_config, &attrs)
+                            .unwrap()
+                    };
+
+                    let gl_context = not_current_context
+                        .take()
                         .unwrap()
-                };
+                        .make_current(&gl_surface)
+                        .expect("Make current context failed.");
 
-                let gl_context = not_current_context
-                    .take()
-                    .unwrap()
-                    .make_current(&gl_surface)
-                    .expect("Make current context failed.");
+                    if let Err(res) = gl_surface.set_swap_interval(
+                        &gl_context,
+                        SwapInterval::Wait(NonZeroU32::new(1).unwrap()),
+                    ) {
+                        eprintln!("Error setting vsync: {res:?}");
+                    }
 
-                state = Some(GlState {
-                    context: gl_context,
-                    surface: gl_surface,
-                    renderer: Renderer::new(&gl_display, SAMPLE),
-                })
-            }
+                    state = Some(GlState {
+                        context: gl_context,
+                        surface: gl_surface,
+                        renderer: Renderer::new(&gl_display, SAMPLE),
+                    })
+                }
 
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => target.exit(),
-
-                WindowEvent::Resized(size) => {
+                Event::AboutToWait => {
                     if let Some(GlState { renderer, .. }) = state.as_ref() {
-                        renderer.resize(size.width as i32, size.height as i32)
+                        if renderer.snapshot() {
+                            window.request_redraw();
+                        }
                     }
                 }
 
-                WindowEvent::RedrawRequested => {
-                    if let Some(GlState {
-                        context,
-                        surface,
-                        renderer,
-                    }) = state.as_ref()
-                    {
-                        renderer.draw();
-                        surface.swap_buffers(context).unwrap();
+                Event::WindowEvent { event, .. } => match event {
+                    WindowEvent::CloseRequested => target.exit(),
+
+                    WindowEvent::Resized(size) => {
+                        if let Some(GlState { renderer, .. }) = state.as_ref() {
+                            renderer.resize(size.width as i32, size.height as i32)
+                        }
                     }
-                }
+
+                    WindowEvent::RedrawRequested => {
+                        if let Some(GlState {
+                            context,
+                            surface,
+                            renderer,
+                        }) = state.as_ref()
+                        {
+                            renderer.draw();
+                            surface.swap_buffers(context).unwrap();
+                        }
+                    }
+                    _ => {}
+                },
                 _ => {}
-            },
-            _ => {}
+            }
         })
         .unwrap();
 }

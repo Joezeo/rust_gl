@@ -21,13 +21,13 @@ pub fn gl_check_error(gl: &gl::Gl) -> bool {
 
 #[macro_export]
 macro_rules! gl_call {
-    ( $gl:ident, $epr:ident($($args:tt)*) ) => {
+    ( $gl:ident, $fn:ident($($args:tt)*) ) => {
         {
-            let fn_name = concat!(stringify!($epr), "(", concat!($(stringify!($args)),*), ")");
+            let fn_name = concat!(stringify!($fn), "(", concat!($(stringify!($args)),*), ")");
 
             crate::error::gl_clear_error($gl);
 
-            let res = $gl.$epr($($args)*);
+            let res = $gl.$fn($($args)*);
 
             if crate::error::gl_check_error($gl) {
                 println!("failed on function: {}, at file {}({},{})", fn_name, file!(), line!(), column!());

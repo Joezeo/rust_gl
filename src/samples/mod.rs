@@ -1,8 +1,11 @@
 mod simple_squre;
 mod simple_triangle;
 
-use crate::{gl_call, renderer::gl};
-use std::ptr::null;
+use crate::{
+    gl_call,
+    renderer::{as_gl_char_ptr, gl},
+};
+use std::{cell::Cell, ptr::null};
 
 pub enum Sample {
     SimpleTriangle,
@@ -20,6 +23,9 @@ pub enum SampleProps {
         vao: u32,
         vbo: u32,
         ibo: u32,
+
+        r: Cell<f32>,
+        inc: Cell<f32>,
     },
 }
 
@@ -52,6 +58,7 @@ impl SampleProps {
                 vao,
                 vbo,
                 ibo,
+                ..
             } => {
                 gl_call!(gl, UseProgram(*program));
 
@@ -64,6 +71,31 @@ impl SampleProps {
 
                 gl_call!(gl, DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null()));
             }
+        }
+    }
+
+    pub unsafe fn snapshot(&self, gl: &gl::Gl) -> bool {
+        match self {
+            Self::SimpleSquare { program, r, inc, .. } => {
+                gl_call!(gl, UseProgram(*program));
+
+                let location =
+                    gl_call!(gl, GetUniformLocation(*program, as_gl_char_ptr("u_color\0")));
+                assert!(location != -1);
+
+                let rc = r.get();
+                gl_call!(gl, Uniform4f(location, rc, 0.2, 0.75, 0.9));
+
+                if rc > 1. {
+                    inc.set(-0.05)
+                } else if rc < 0. {
+                    inc.set(0.05)
+                }
+                r.set(rc + inc.get());
+
+                true
+            }
+            _ => false,
         }
     }
 
@@ -80,6 +112,7 @@ impl SampleProps {
                 vao,
                 vbo,
                 ibo,
+                ..
             } => {
                 gl.DeleteProgram(*program);
                 gl.DeleteBuffers(1, vbo);
