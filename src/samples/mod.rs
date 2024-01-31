@@ -41,35 +41,37 @@ impl Sample {
 impl SampleProps {
     pub unsafe fn draw(&self, gl: &gl::Gl) {
         match self {
-            Self::SimpleTriangle { program, vao, vbo } => {
+            Self::SimpleTriangle { program, vao, .. } => {
                 gl_call!(gl, UseProgram(*program));
-
                 gl_call!(gl, BindVertexArray(*vao));
-                gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, *vbo));
 
                 gl_call!(gl, ClearColor(0.1, 0.1, 0.1, 0.9));
                 gl_call!(gl, Clear(gl::COLOR_BUFFER_BIT));
 
                 gl_call!(gl, DrawArrays(gl::TRIANGLES, 0, 3));
+
+                gl_call!(gl, BindVertexArray(0));
+                gl_call!(gl, UseProgram(0));
             }
 
             Self::SimpleSquare {
                 program,
                 vao,
-                vbo,
                 ibo,
                 ..
             } => {
                 gl_call!(gl, UseProgram(*program));
-
                 gl_call!(gl, BindVertexArray(*vao));
-                gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, *vbo));
                 gl_call!(gl, BindBuffer(gl::ELEMENT_ARRAY_BUFFER, *ibo));
 
                 gl_call!(gl, ClearColor(0.1, 0.1, 0.1, 0.9));
                 gl_call!(gl, Clear(gl::COLOR_BUFFER_BIT));
 
                 gl_call!(gl, DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null()));
+
+                gl_call!(gl, BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0));
+                gl_call!(gl, BindVertexArray(0));
+                gl_call!(gl, UseProgram(0));
             }
         }
     }

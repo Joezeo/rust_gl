@@ -54,6 +54,7 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
         )
     );
 
+    gl_call!(gl, EnableVertexAttribArray(0));
     gl_call!(
         gl,
         VertexAttribPointer(
@@ -65,7 +66,11 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
             0 as *const _,
         )
     );
-    gl_call!(gl, EnableVertexAttribArray(0));
+
+    // Unbind things:
+    gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, 0));
+    gl_call!(gl, BindVertexArray(0));
+    gl_call!(gl, UseProgram(0));
 
     SampleProps::SimpleTriangle { program, vao, vbo }
 }

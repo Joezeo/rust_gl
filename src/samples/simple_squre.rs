@@ -63,6 +63,19 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
         )
     );
 
+    gl_call!(gl, EnableVertexAttribArray(0));
+    gl_call!(
+        gl,
+        VertexAttribPointer(
+            0,
+            2,
+            gl::FLOAT,
+            gl::FALSE,
+            (std::mem::size_of::<f32>() * 2) as GLsizei,
+            0 as *const _,
+        )
+    );
+
     // Create index buffer object:
     let mut ibo = std::mem::zeroed();
     gl_call!(gl, GenBuffers(1, &mut ibo));
@@ -77,18 +90,11 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
         )
     );
 
-    gl_call!(
-        gl,
-        VertexAttribPointer(
-            0,
-            2,
-            gl::FLOAT,
-            gl::FALSE,
-            (std::mem::size_of::<f32>() * 2) as GLsizei,
-            0 as *const _,
-        )
-    );
-    gl_call!(gl, EnableVertexAttribArray(0));
+    // Unbind things:
+    gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, 0));
+    gl_call!(gl, BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0));
+    gl_call!(gl, BindVertexArray(0));
+    gl_call!(gl, UseProgram(0));
 
     SampleProps::SimpleSquare {
         program,
