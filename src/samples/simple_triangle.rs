@@ -1,8 +1,5 @@
 use super::SampleProps;
-use crate::{
-    gl_call,
-    shaders::{create_shader, ShaderSource, ShaderType},
-};
+use crate::{gl_call, shaders::Shader};
 use gl::types::{GLsizei, GLsizeiptr};
 
 #[rustfmt::skip]
@@ -14,25 +11,7 @@ const VERTEX_DATA: [f32; 6] = [
 
 pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     // Create shaders:
-    let program = gl_call!(gl, CreateProgram());
-    let vertex_shader = create_shader(
-        &gl,
-        gl::VERTEX_SHADER,
-        &ShaderSource::load("basic", ShaderType::Vertex),
-    );
-    let fragment_shader = create_shader(
-        &gl,
-        gl::FRAGMENT_SHADER,
-        &ShaderSource::load("basic", ShaderType::Fragment),
-    );
-    gl_call!(gl, AttachShader(program, vertex_shader));
-    gl_call!(gl, AttachShader(program, fragment_shader));
-
-    gl_call!(gl, LinkProgram(program));
-    gl_call!(gl, UseProgram(program));
-
-    gl_call!(gl, DeleteShader(vertex_shader));
-    gl_call!(gl, DeleteShader(fragment_shader));
+    let shader = Shader::load(gl, "basic", "basic");
 
     // Create vertex array object:
     let mut vao = std::mem::zeroed();
@@ -58,12 +37,12 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     gl_call!(
         gl,
         VertexAttribPointer(
-            0,
-            2,
-            gl::FLOAT,
-            gl::FALSE,
-            (std::mem::size_of::<f32>() * 2) as GLsizei,
-            0 as *const _,
+            0, // index
+            2, // size
+            gl::FLOAT, // type
+            gl::FALSE, // normalized
+            (std::mem::size_of::<f32>() * 2) as GLsizei, // stride
+            0 as *const _, // offset
         )
     );
 
@@ -72,5 +51,5 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     gl_call!(gl, BindVertexArray(0));
     gl_call!(gl, UseProgram(0));
 
-    SampleProps::SimpleTriangle { program, vao, vbo }
+    SampleProps::SimpleTriangle { shader, vao, vbo }
 }

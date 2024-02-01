@@ -1,5 +1,4 @@
 use crate::{gl_call, samples::{Sample, SampleProps}};
-use ::gl::types::GLchar;
 use glutin::display::GlDisplay;
 use std::ffi::{CStr, CString};
 
@@ -69,10 +68,4 @@ pub fn get_gl_string(gl: &gl::Gl, variant: gl::types::GLenum) -> Option<&'static
         let s = gl_call!(gl, GetString(variant));
         (!s.is_null()).then(|| CStr::from_ptr(s.cast()))
     }
-}
-
-/// #### The string that interacts with OpenGl Api needs to end with '\0'
-#[inline]
-pub fn as_gl_char_ptr(str: &str) -> *const GLchar {
-    str.as_bytes() as *const [u8] as *const u8 as *const GLchar
 }
