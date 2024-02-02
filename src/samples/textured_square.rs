@@ -53,7 +53,7 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
             gl::FLOAT, // type
             gl::FALSE, // normalized
             (std::mem::size_of::<f32>() * 4) as GLsizei, // stride
-            0 as *const _, // offset
+            (std::mem::size_of::<f32>() * 0) as *const _, // offset
         )
     );
 
@@ -66,7 +66,7 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
             gl::FLOAT, // type
             gl::FALSE, // normalized
             (std::mem::size_of::<f32>() * 4) as GLsizei, // stride
-            2 as *const _, // offset
+            (std::mem::size_of::<f32>() * 2) as *const _, // offset
         )
     );
 
@@ -85,7 +85,7 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     );
 
     // Create the texture:
-    let texture = Texture::load(gl, "texture02.jpg");
+    let texture = Texture::load(gl, "texture02.png");
 
     // Unbind things:
     gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, 0));

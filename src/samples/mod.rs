@@ -37,6 +37,8 @@ pub enum SampleProps {
 
 impl Sample {
     pub unsafe fn create(&self, gl: &gl::Gl) -> SampleProps {
+        gl_call!(gl, BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA));
+
         match self {
             Self::SimpleTriangle => simple_triangle::create_sample(gl),
             Self::SimpleSquare => simple_square::create_sample(gl),
@@ -46,7 +48,7 @@ impl Sample {
 }
 
 impl SampleProps {
-    pub unsafe fn draw(&self, gl: &gl::Gl) {
+    pub fn draw(&self, gl: &gl::Gl) {
         self.bind(gl);
 
         match self {
@@ -64,9 +66,7 @@ impl SampleProps {
                 gl_call!(gl, DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null()));
             }
 
-            Self::TexturedSquare { shader, .. } => {
-                shader.set_uniform_1i(gl, "u_texture\0", 0);
-
+            Self::TexturedSquare { .. } => {
                 gl_call!(gl, ClearColor(0.1, 0.1, 0.1, 0.9));
                 gl_call!(gl, Clear(gl::COLOR_BUFFER_BIT));
 
@@ -77,7 +77,7 @@ impl SampleProps {
         self.unbind(gl);
     }
 
-    unsafe fn bind(&self, gl: &gl::Gl) {
+    fn bind(&self, gl: &gl::Gl) {
         match self {
             Self::SimpleTriangle { shader, vao, .. } => {
                 shader.bind(gl);
@@ -100,7 +100,10 @@ impl SampleProps {
                 ..
             } => {
                 shader.bind(gl);
-                texture.bind(gl);
+
+                let slot = 0;
+                texture.bind(gl, slot);
+                shader.set_uniform_1i(gl, "u_texture\0", slot);
 
                 gl_call!(gl, BindVertexArray(*vao));
                 gl_call!(gl, BindBuffer(gl::ELEMENT_ARRAY_BUFFER, *ibo));
@@ -108,7 +111,7 @@ impl SampleProps {
         }
     }
 
-    unsafe fn unbind(&self, gl: &gl::Gl) {
+    fn unbind(&self, gl: &gl::Gl) {
         match self {
             Self::SimpleTriangle { shader, .. } => {
                 shader.unbind(gl);
@@ -133,7 +136,7 @@ impl SampleProps {
         }
     }
 
-    pub unsafe fn snapshot(&self, gl: &gl::Gl) -> bool {
+    pub fn snapshot(&self, gl: &gl::Gl) -> bool {
         match self {
             Self::SimpleSquare { shader, r, inc, .. } => {
                 let rc = r.get();

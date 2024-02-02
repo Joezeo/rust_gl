@@ -1,4 +1,7 @@
-use crate::{gl_call, samples::{Sample, SampleProps}};
+use crate::{
+    gl_call,
+    samples::{Sample, SampleProps},
+};
 use glutin::display::GlDisplay;
 use std::ffi::{CStr, CString};
 
@@ -37,15 +40,11 @@ impl Renderer {
     }
 
     pub fn draw(&self) {
-        unsafe {
-            self.sample.draw(&self.gl);
-        }
+        self.sample.draw(&self.gl);
     }
 
     pub fn snapshot(&self) -> bool {
-        unsafe {
-            self.sample.snapshot(&self.gl)
-        }
+        self.sample.snapshot(&self.gl)
     }
 
     pub fn resize(&self, width: i32, height: i32) {
@@ -64,8 +63,6 @@ impl Drop for Renderer {
 }
 
 pub fn get_gl_string(gl: &gl::Gl, variant: gl::types::GLenum) -> Option<&'static CStr> {
-    unsafe {
-        let s = gl_call!(gl, GetString(variant));
-        (!s.is_null()).then(|| CStr::from_ptr(s.cast()))
-    }
+    let s = gl_call!(gl, GetString(variant));
+    (!s.is_null()).then(|| unsafe { CStr::from_ptr(s.cast()) })
 }

@@ -42,7 +42,7 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
             gl::FLOAT, // type
             gl::FALSE, // normalized
             (std::mem::size_of::<f32>() * 2) as GLsizei, // stride
-            0 as *const _, // offset
+            (std::mem::size_of::<f32>() * 0) as *const _, // offset
         )
     );
 

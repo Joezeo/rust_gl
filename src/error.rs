@@ -22,7 +22,7 @@ pub fn gl_check_error(gl: &gl::Gl) -> bool {
 #[macro_export]
 macro_rules! gl_call {
     ( $gl:ident, $fn:ident($($args:tt)*) ) => {
-        {
+        unsafe {
             let fn_name = concat!(stringify!($fn), "(", concat!($(stringify!($args)),*), ")");
 
             crate::error::gl_clear_error($gl);

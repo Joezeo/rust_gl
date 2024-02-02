@@ -48,54 +48,40 @@ pub struct Shader {
 }
 impl Shader {
     pub fn load<T: ToString>(gl: &gl::Gl, vertex_name: T, fragment_name: T) -> Self {
-        unsafe {
-            let vertex_shader = ShaderType::Vertex.create_shader(gl, vertex_name);
-            let fragment_shader = ShaderType::Fragment.create_shader(gl, fragment_name);
+        let vertex_shader = ShaderType::Vertex.create_shader(gl, vertex_name);
+        let fragment_shader = ShaderType::Fragment.create_shader(gl, fragment_name);
 
-            let program = gl_call!(gl, CreateProgram());
-            gl_call!(gl, AttachShader(program, vertex_shader));
-            gl_call!(gl, AttachShader(program, fragment_shader));
+        let program = gl_call!(gl, CreateProgram());
+        gl_call!(gl, AttachShader(program, vertex_shader));
+        gl_call!(gl, AttachShader(program, fragment_shader));
 
-            gl_call!(gl, LinkProgram(program));
-            gl_call!(gl, UseProgram(program));
+        gl_call!(gl, LinkProgram(program));
+        gl_call!(gl, UseProgram(program));
 
-            gl_call!(gl, DeleteShader(vertex_shader));
-            gl_call!(gl, DeleteShader(fragment_shader));
+        gl_call!(gl, DeleteShader(vertex_shader));
+        gl_call!(gl, DeleteShader(fragment_shader));
 
-            Self { program }
-        }
+        Self { program }
     }
 
     pub fn set_uniform_1i(&self, gl: &gl::Gl, name: &str, v0: i32) {
-        unsafe {
-            self.bind(gl);
+        self.bind(gl);
 
-            let location = gl_call!(gl, GetUniformLocation(self.program, as_gl_char_ptr(name)));
-            assert!(location != -1);
-            gl_call!(gl, Uniform1i(location, v0));
-        }
+        gl_call!(gl, Uniform1i(self.location(gl, name), v0));
     }
 
     pub fn set_uniform_4f(&self, gl: &gl::Gl, name: &str, v0: f32, v1: f32, v2: f32, v3: f32) {
-        unsafe {
-            self.bind(gl);
+        self.bind(gl);
 
-            let location = gl_call!(gl, GetUniformLocation(self.program, as_gl_char_ptr(name)));
-            assert!(location != -1);
-            gl_call!(gl, Uniform4f(location, v0, v1, v2, v3));
-        }
+        gl_call!(gl, Uniform4f(self.location(gl, name), v0, v1, v2, v3));
     }
 
     pub fn bind(&self, gl: &gl::Gl) {
-        unsafe {
-            gl_call!(gl, UseProgram(self.program));
-        }
+        gl_call!(gl, UseProgram(self.program));
     }
 
     pub fn unbind(&self, gl: &gl::Gl) {
-        unsafe {
-            gl_call!(gl, UseProgram(0));
-        }
+        gl_call!(gl, UseProgram(0));
     }
 
     pub fn drop(&self, gl: &gl::Gl) {
@@ -106,6 +92,12 @@ impl Shader {
 
     pub fn program(&self) -> GLuint {
         self.program
+    }
+
+    unsafe fn location(&self, gl: &gl::Gl, name: &str) -> i32 {
+        let location = gl_call!(gl, GetUniformLocation(self.program, as_gl_char_ptr(name)));
+        assert!(location != -1);
+        location
     }
 }
 
