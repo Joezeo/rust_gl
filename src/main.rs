@@ -1,3 +1,5 @@
+extern crate nalgebra as na;
+
 pub mod error;
 pub mod gl_bootstrap;
 pub mod renderer;
@@ -16,9 +18,7 @@ use renderer::Renderer;
 use samples::Sample;
 use std::num::NonZeroU32;
 use winit::{
-    event::{Event, WindowEvent},
-    event_loop::EventLoopBuilder,
-    window::WindowBuilder,
+    dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoopBuilder, window::WindowBuilder
 };
 
 const SAMPLE: Sample = Sample::TexturedSquare;
@@ -29,6 +29,7 @@ fn main() {
     let win_bld = WindowBuilder::new()
         .with_transparent(true)
         .with_visible(false)
+        .with_inner_size(PhysicalSize::new(800, 800))
         .with_title("Gl Window");
 
     let (window, gl_config, mut not_current_context) =

@@ -5,6 +5,7 @@ use crate::{
     texture::Texture,
 };
 use gl::types::{GLsizei, GLsizeiptr};
+use nalgebra::Matrix4;
 
 #[rustfmt::skip]
 const VERTEX_DATA: [f32; 16] = [
@@ -85,7 +86,11 @@ pub unsafe fn create_sample(gl: &super::gl::Gl) -> SampleProps {
     );
 
     // Create the texture:
-    let texture = Texture::load(gl, "texture02.png");
+    let texture = Texture::load(gl, "texture01.jpeg");
+
+    // Set up the project matrix:
+    let proj = Matrix4::new_orthographic(-1.6, 1.6, -1.175, 1.175, -1.0, 1.0);
+    shader.set_uniform_mat_4f(gl, "u_proj\0", &proj);
 
     // Unbind things:
     gl_call!(gl, BindBuffer(gl::ARRAY_BUFFER, 0));

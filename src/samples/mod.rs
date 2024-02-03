@@ -37,6 +37,7 @@ pub enum SampleProps {
 
 impl Sample {
     pub unsafe fn create(&self, gl: &gl::Gl) -> SampleProps {
+        gl_call!(gl, Enable(gl::BLEND));
         gl_call!(gl, BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA));
 
         match self {

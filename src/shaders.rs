@@ -1,6 +1,7 @@
 use crate::renderer::gl;
 use ::gl::types::{GLchar, GLenum};
 use gl::types::GLuint;
+use nalgebra::Matrix4;
 use std::{fs::File, io::Read, path::PathBuf};
 use winit::dpi::Pixel;
 
@@ -74,6 +75,12 @@ impl Shader {
         self.bind(gl);
 
         gl_call!(gl, Uniform4f(self.location(gl, name), v0, v1, v2, v3));
+    }
+
+    pub fn set_uniform_mat_4f(&self, gl: &gl::Gl, name: &str, mat: &Matrix4<f32>) {
+        self.bind(gl);
+
+        gl_call!(gl, UniformMatrix4fv(self.location(gl, name), 1, gl::FALSE, mat.as_ptr()))
     }
 
     pub fn bind(&self, gl: &gl::Gl) {

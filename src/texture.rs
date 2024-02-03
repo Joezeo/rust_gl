@@ -17,7 +17,8 @@ impl Texture {
         let path = PathBuf::default().join("res/textures").join(name);
         let img = image::open(path)
             .expect(&format!("Can not open image: {}", name))
-            .to_rgb8();
+            .flipv()
+            .to_rgba8();
         let (width, height) = img.dimensions();
         let bytes = img.as_bytes();
 
@@ -47,11 +48,11 @@ impl Texture {
             TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                gl::RGB.cast(),
+                gl::RGBA8.cast(),
                 width.cast(),
                 height.cast(),
                 0,
-                gl::RGB,
+                gl::RGBA,
                 gl::UNSIGNED_BYTE,
                 bytes.as_ptr() as *const _
             )
